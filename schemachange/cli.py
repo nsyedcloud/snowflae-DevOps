@@ -60,10 +60,10 @@ def schemachange(root_folder, snowflake_account, snowflake_user, snowflake_role,
   }
 
   # TODO: Is there a better way to do this without setting environment variables?
-  os.environ["SNOWFLAKE_ACCOUNT"] = snowflake_account
-  os.environ["SNOWFLAKE_USER"] = snowflake_user
-  os.environ["SNOWFLAKE_ROLE"] = snowflake_role
-  os.environ["SNOWFLAKE_WAREHOUSE"] = snowflake_warehouse
+  os.environ["SNOWFLAKE_ACCOUNT"] = 'gh94889.ap-south-1'
+  os.environ["SNOWFLAKE_USER"] = 'nsyed1117'
+  os.environ["SNOWFLAKE_ROLE"] = 'ACCOUNTADMIN'
+  os.environ["SNOWFLAKE_WAREHOUSE"] = 'MY_DEB_WH'
   os.environ["SNOWFLAKE_AUTHENTICATOR"] = 'snowflake'
 
   scripts_skipped = 0
@@ -180,13 +180,7 @@ def get_all_scripts_recursively(root_directory, verbose):
 
 def execute_snowflake_query(snowflake_database, query, snowflake_session_parameters, autocommit, verbose):
   # Password authentication is the default
-  snowflake_password = None
-  if os.getenv("SNOWFLAKE_PASSWORD") is not None and os.getenv("SNOWFLAKE_PASSWORD"):
-    snowflake_password = os.getenv("SNOWFLAKE_PASSWORD")
-  elif os.getenv("SNOWSQL_PWD") is not None and os.getenv("SNOWSQL_PWD"):  # Check legacy/deprecated env variable
-    snowflake_password = os.getenv("SNOWSQL_PWD")
-    warnings.warn("The SNOWSQL_PWD environment variable is deprecated and will be removed in a later version of schemachange. Please use SNOWFLAKE_PASSWORD instead.", DeprecationWarning)
-    
+  snowflake_password = 'Wn@121117'
   if snowflake_password is not None:
     if verbose:
       print("Proceeding with password authentication")
@@ -199,33 +193,6 @@ def execute_snowflake_query(snowflake_database, query, snowflake_session_paramet
       database = snowflake_database,
       authenticator = os.environ["SNOWFLAKE_AUTHENTICATOR"],
       password = snowflake_password,
-      session_parameters = snowflake_session_parameters
-    )
-  # If no password, try private key authentication
-  elif os.getenv("SNOWFLAKE_PRIVATE_KEY_PATH") is not None and os.getenv("SNOWFLAKE_PRIVATE_KEY_PATH") and os.getenv("SNOWFLAKE_PRIVATE_KEY_PASSPHRASE") is not None and os.getenv("SNOWFLAKE_PRIVATE_KEY_PASSPHRASE"):
-    if verbose:
-      print("Proceeding with private key authentication")
-
-    with open(os.environ["SNOWFLAKE_PRIVATE_KEY_PATH"], "rb") as key:
-      p_key= serialization.load_pem_private_key(
-          key.read(),
-          password = os.environ['SNOWFLAKE_PRIVATE_KEY_PASSPHRASE'].encode(),
-          backend = default_backend()
-      )
-
-    pkb = p_key.private_bytes(
-        encoding = serialization.Encoding.DER,
-        format = serialization.PrivateFormat.PKCS8,
-        encryption_algorithm = serialization.NoEncryption())
-
-    con = snowflake.connector.connect(
-      user = os.environ["SNOWFLAKE_USER"],
-      account = os.environ["SNOWFLAKE_ACCOUNT"],
-      role = os.environ["SNOWFLAKE_ROLE"],
-      warehouse = os.environ["SNOWFLAKE_WAREHOUSE"],
-      database = snowflake_database,
-      authenticator = os.environ["SNOWFLAKE_AUTHENTICATOR"],
-      private_key = pkb,
       session_parameters = snowflake_session_parameters
     )
   else:
